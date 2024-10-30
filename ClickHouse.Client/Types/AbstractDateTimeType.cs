@@ -1,19 +1,20 @@
-﻿using System;
-using NodaTime;
+﻿using NodaTime;
+using System;
 
 namespace ClickHouse.Client.Types;
 
 public static class DateTimeConversions
 {
-    public static readonly DateTime DateTimeEpochStart = DateTimeOffset.FromUnixTimeSeconds(0).UtcDateTime;
-
-#if NET6_0_OR_GREATER
-    public static readonly DateOnly DateOnlyEpochStart = new(1970, 1, 1);
-#endif
+    public static readonly DateTime DateTimeEpochStart = new DateTime(1970, 1, 1, 0, 0, 0, 0);
 
     public static int ToUnixTimeDays(this DateTimeOffset dto)
     {
         return (int)(dto.Date - DateTimeEpochStart.Date).TotalDays;
+    }
+
+    public static int ToUnixTimeSeconds(this DateTimeOffset dto)
+    {
+        return (int)(dto.Date - DateTimeEpochStart.Date).TotalSeconds;
     }
 
     public static DateTime FromUnixTimeDays(int days) => DateTimeEpochStart.AddDays(days);

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ClickHouse.Client.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using ClickHouse.Client.Utility;
 
 namespace ClickHouse.Client.ADO.Parameters;
 
@@ -70,7 +70,7 @@ internal class ClickHouseParameterCollection : DbParameterCollection
 
     internal string ReplacePlaceholders(string sqlQuery)
     {
-        if (FeatureSwitch.DisableReplacingParameters || parameters.Count == 0)
+        if (/*FeatureSwitch.DisableReplacingParameters ||*/ parameters.Count == 0)
             return sqlQuery;
 
         var replacements = new Dictionary<string, string>();

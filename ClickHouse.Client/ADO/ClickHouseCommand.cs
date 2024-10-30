@@ -1,4 +1,8 @@
-﻿using System;
+﻿using ClickHouse.Client.ADO.Parameters;
+using ClickHouse.Client.ADO.Readers;
+using ClickHouse.Client.Formats;
+using ClickHouse.Client.Utility;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -7,15 +11,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickHouse.Client.ADO.Parameters;
-using ClickHouse.Client.ADO.Readers;
-using ClickHouse.Client.Diagnostic;
-using ClickHouse.Client.Formats;
-using ClickHouse.Client.Json;
-using ClickHouse.Client.Utility;
 
 namespace ClickHouse.Client.ADO;
 
@@ -120,9 +117,7 @@ public class ClickHouseCommand : DbCommand, IClickHouseCommand, IDisposable
 
     protected override DbParameter CreateDbParameter() => CreateParameter();
 
-#pragma warning disable CA2215 // Dispose methods should call base class dispose
     protected override void Dispose(bool disposing)
-#pragma warning restore CA2215 // Dispose methods should call base class dispose
     {
         if (disposing)
         {
@@ -159,10 +154,11 @@ public class ClickHouseCommand : DbCommand, IClickHouseCommand, IDisposable
     {
         if (connection == null)
             throw new InvalidOperationException("Connection not set");
-        using var activity = connection.StartActivity("PostSqlQueryAsync");
 
         var uriBuilder = connection.CreateUriBuilder();
-        await connection.EnsureOpenAsync().ConfigureAwait(false); // Preserve old behavior
+        Task t = connection.EnsureOpenAsync();
+        if (t != null)
+            await t.ConfigureAwait(false); // Preserve old behavior
 
         uriBuilder.QueryId = QueryId;
         uriBuilder.CommandQueryStringParameters = customSettings;
@@ -175,16 +171,12 @@ public class ClickHouseCommand : DbCommand, IClickHouseCommand, IDisposable
                 sqlQuery: sqlQuery,
                 uriBuilder: uriBuilder);
 
-        activity.SetQuery(sqlQuery);
-
         var response = await connection.HttpClient
             .SendAsync(postMessage, HttpCompletionOption.ResponseHeadersRead, token)
             .ConfigureAwait(false);
 
         QueryId = ExtractQueryId(response);
-        QueryStats = ExtractQueryStats(response);
-        activity.SetQueryStats(QueryStats);
-        return await ClickHouseConnection.HandleError(response, sqlQuery, activity).ConfigureAwait(false);
+        return await ClickHouseConnection.HandleError(response, sqlQuery).ConfigureAwait(false);
     }
 
     private HttpRequestMessage BuildHttpRequestMessageWithQueryParams(string sqlQuery, ClickHouseUriBuilder uriBuilder)
@@ -246,30 +238,6 @@ public class ClickHouseCommand : DbCommand, IClickHouseCommand, IDisposable
         postMessage.Content = content;
 
         return postMessage;
-    }
-
-    private static readonly JsonSerializerOptions SummarySerializerOptions = new JsonSerializerOptions
-    {
-        PropertyNamingPolicy = new SnakeCaseNamingPolicy(),
-        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString,
-    };
-
-    private static QueryStats ExtractQueryStats(HttpResponseMessage response)
-    {
-        try
-        {
-            const string summaryHeader = "X-ClickHouse-Summary";
-            if (response.Headers.Contains(summaryHeader))
-            {
-                var value = response.Headers.GetValues(summaryHeader).FirstOrDefault();
-                var jsonDoc = JsonDocument.Parse(value);
-                return JsonSerializer.Deserialize<QueryStats>(value, SummarySerializerOptions);
-            }
-        }
-        catch
-        {
-        }
-        return null;
     }
 
     private static string ExtractQueryId(HttpResponseMessage response)

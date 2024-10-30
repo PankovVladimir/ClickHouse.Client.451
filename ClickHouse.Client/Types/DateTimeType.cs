@@ -1,7 +1,7 @@
-﻿using System;
-using ClickHouse.Client.Formats;
+﻿using ClickHouse.Client.Formats;
 using ClickHouse.Client.Types.Grammar;
 using NodaTime;
+using System;
 
 namespace ClickHouse.Client.Types;
 
@@ -26,6 +26,6 @@ internal class DateTimeType : AbstractDateTimeType
 
     public override void Write(ExtendedBinaryWriter writer, object value)
     {
-        writer.Write((int)CoerceToDateTimeOffset(value).ToUnixTimeSeconds());
+        writer.Write(CoerceToDateTimeOffset(value).ToUnixTimeSeconds());
     }
 }

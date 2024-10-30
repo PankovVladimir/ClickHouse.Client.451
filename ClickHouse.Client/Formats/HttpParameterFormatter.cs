@@ -1,12 +1,11 @@
-using System;
-using System.Collections;
-using System.Globalization;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using ClickHouse.Client.ADO.Parameters;
 using ClickHouse.Client.Numerics;
 using ClickHouse.Client.Types;
 using ClickHouse.Client.Utility;
+using System;
+using System.Collections;
+using System.Globalization;
+using System.Linq;
 
 namespace ClickHouse.Client.Formats;
 
@@ -81,11 +80,6 @@ internal static class HttpParameterFormatter
                 var values = enumerable.Cast<object>().Select(x => Format(nestedType, x, false));
                 return $"[{string.Join(",", values)}]";
 
-#if !NET462
-            case TupleType tupleType when value is ITuple tuple:
-                return $"({string.Join(",", tupleType.UnderlyingTypes.Select((x, i) => Format(x, tuple[i], true)))})";
-#endif
-
             case TupleType tupleType when value is IList list:
                 return $"({string.Join(",", tupleType.UnderlyingTypes.Select((x, i) => Format(x, list[i], true)))})";
 
@@ -94,7 +88,7 @@ internal static class HttpParameterFormatter
                 return $"{{{string.Join(",", strings)}}}";
 
             case VariantType variantType:
-                var (_,chType) = variantType.GetMatchingType(value);
+                var (_, chType) = variantType.GetMatchingType(value);
                 return Format(chType, value, quote);
 
             default:

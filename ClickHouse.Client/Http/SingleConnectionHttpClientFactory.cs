@@ -15,7 +15,6 @@ internal class SingleConnectionHttpClientFactory : IHttpClientFactory, IDisposab
         handler = new HttpClientHandler()
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            MaxConnectionsPerServer = 1,
         };
     }
 

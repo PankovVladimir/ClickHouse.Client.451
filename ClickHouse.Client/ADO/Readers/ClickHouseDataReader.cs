@@ -1,21 +1,19 @@
-﻿using System;
+﻿using ClickHouse.Client.Formats;
+using ClickHouse.Client.Numerics;
+using ClickHouse.Client.Types;
+using ClickHouse.Client.Utility;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickHouse.Client.Formats;
-using ClickHouse.Client.Numerics;
-using ClickHouse.Client.Types;
-using ClickHouse.Client.Utility;
 
 namespace ClickHouse.Client.ADO.Readers;
 
@@ -179,11 +177,6 @@ public class ClickHouseDataReader : DbDataReader, IEnumerator<IDataReader>, IEnu
     // Custom extension
     public IPAddress GetIPAddress(int ordinal) => (IPAddress)GetValue(ordinal);
 
-#if !NET462
-    // Custom extension
-    public ITuple GetTuple(int ordinal) => (ITuple)GetValue(ordinal);
-#endif
-
     // Custom extension
     public sbyte GetSByte(int ordinal) => (sbyte)GetValue(ordinal);
 
@@ -205,7 +198,6 @@ public class ClickHouseDataReader : DbDataReader, IEnumerator<IDataReader>, IEnu
         return true;
     }
 
-#pragma warning disable CA2215 // Dispose methods should call base class dispose
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -214,7 +206,6 @@ public class ClickHouseDataReader : DbDataReader, IEnumerator<IDataReader>, IEnu
             reader?.Dispose();
         }
     }
-#pragma warning restore CA2215 // Dispose methods should call base class dispose
 
     private static (string[], ClickHouseType[]) ReadHeaders(ExtendedBinaryReader reader, TypeSettings settings)
     {

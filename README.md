@@ -1,4 +1,4 @@
-# ClickHouse.Client
+# ClickHouse.Client for .Net Framework 4.5.1
 
 ADO.NET client for [ClickHouse](https://github.com/ClickHouse/ClickHouse), ultra-fast 'big data' relational database
 

@@ -1,9 +1,10 @@
-﻿using System;
+﻿using ClickHouse.Client.Http;
+using ClickHouse.Client.Utility;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -12,10 +13,6 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ClickHouse.Client.Diagnostic;
-using ClickHouse.Client.Http;
-using ClickHouse.Client.Utility;
-using Microsoft.Extensions.Logging;
 
 namespace ClickHouse.Client.ADO;
 
@@ -110,8 +107,6 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
         this.httpClientName = httpClientName ?? throw new ArgumentNullException(nameof(httpClientName));
         ConnectionString = connectionString;
     }
-
-    public ILogger Logger { get; set; }
 
     /// <summary>
     /// Gets or sets string defining connection settings for ClickHouse server
@@ -211,16 +206,14 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
 
     public override DataTable GetSchema(string collectionName, string[] restrictionValues) => SchemaDescriber.DescribeSchema(this, collectionName, restrictionValues);
 
-    internal static async Task<HttpResponseMessage> HandleError(HttpResponseMessage response, string query, Activity activity)
+    internal static async Task<HttpResponseMessage> HandleError(HttpResponseMessage response, string query)
     {
         if (response.IsSuccessStatusCode)
         {
-            activity.SetSuccess();
             return response;
         }
         var error = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         var ex = ClickHouseServerException.FromServerResponse(error, query);
-        activity.SetException(ex);
         throw ex;
     }
 
@@ -238,8 +231,6 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
 
         if (State == ConnectionState.Open)
             return;
-        using var activity = this.StartActivity("OpenAsync");
-        activity.SetQuery(versionQuery);
 
         try
         {
@@ -249,12 +240,9 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
                 Content = new StringContent(versionQuery, Encoding.UTF8),
             };
             AddDefaultHttpHeaders(request.Headers);
-            var response = await HandleError(await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false), versionQuery, activity).ConfigureAwait(false);
-#if NET5_0_OR_GREATER
-            var data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-#else
+            var response = await HandleError(await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false), versionQuery).ConfigureAwait(false);
+
             var data = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-#endif
 
             if (data.Length > 2 && data[0] == 0x1F && data[1] == 0x8B) // Check if response starts with GZip marker
                 throw new InvalidOperationException("ClickHouse server returned compressed result but HttpClient did not decompress it. Check HttpClient settings");
@@ -308,9 +296,6 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
 
     private async Task PostStreamAsync(string sql, HttpContent content, bool isCompressed, CancellationToken token)
     {
-        using var activity = this.StartActivity("PostStreamAsync");
-        activity.SetQuery(sql);
-
         var builder = CreateUriBuilder(sql);
         using var postMessage = new HttpRequestMessage(HttpMethod.Post, builder.ToString());
         AddDefaultHttpHeaders(postMessage.Headers);
@@ -322,7 +307,7 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
             postMessage.Content.Headers.Add("Content-Encoding", "gzip");
         }
         using var response = await HttpClient.SendAsync(postMessage, HttpCompletionOption.ResponseContentRead, token).ConfigureAwait(false);
-        await HandleError(response, sql, activity).ConfigureAwait(false);
+        await HandleError(response, sql).ConfigureAwait(false);
     }
 
     public new ClickHouseCommand CreateCommand() => new ClickHouseCommand(this);
@@ -360,7 +345,7 @@ public class ClickHouseConnection : DbConnection, IClickHouseConnection, IClonea
         Sql = sql,
     };
 
-    internal Task EnsureOpenAsync() => state != ConnectionState.Open ? OpenAsync() : Task.CompletedTask;
+    internal Task EnsureOpenAsync() => state != ConnectionState.Open ? OpenAsync() : null;
 
     internal void AddDefaultHttpHeaders(HttpRequestHeaders headers)
     {
