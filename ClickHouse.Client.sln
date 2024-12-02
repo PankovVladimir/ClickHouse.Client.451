@@ -1,20 +1,21 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.0.32014.148
+VisualStudioVersion = 17.12.35514.174 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickHouse.Client.451", "ClickHouse.Client\ClickHouse.Client.451.csproj", "{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NodaTime.451", "..\nodatime.451\src\NodaTime\NodaTime.451.csproj", "{9CF14E94-1453-4C1C-912D-4C58B9346D00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Release|x86.ActiveCfg = Release|x86
+		{8AF494DB-67AD-4A3D-8B54-513A968AFAD2}.Release|x86.Build.0 = Release|x86
+		{9CF14E94-1453-4C1C-912D-4C58B9346D00}.Release|x86.ActiveCfg = Release|x86
+		{9CF14E94-1453-4C1C-912D-4C58B9346D00}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
