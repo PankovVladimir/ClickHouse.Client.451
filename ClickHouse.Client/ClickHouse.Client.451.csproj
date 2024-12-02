@@ -19,7 +19,9 @@
     <AnalysisMode>Recommended</AnalysisMode>
     <Platforms>x86</Platforms>
     <Configurations>Release</Configurations>
-    <LangVersion>13</LangVersion>
+    <LangVersion>12.0</LangVersion>
+    <AssemblyVersion>1.0.0.1</AssemblyVersion>
+    <FileVersion>1.0.0.1</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
