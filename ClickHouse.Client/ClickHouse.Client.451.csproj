@@ -29,20 +29,13 @@
   </ItemGroup>
         
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="NodaTime" Version="2.4.18" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   
   <ItemGroup Condition=" $(TargetFramework.StartsWith('net4')) ">
     <Reference Include="System.Web" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\nodatime.451\src\NodaTime\NodaTime.451.csproj" />
   </ItemGroup>
 
 </Project>
